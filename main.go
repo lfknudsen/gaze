@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"os"
 	"os/exec"
 	"strconv"
 	"strings"
+	"sync"
+	"text/tabwriter"
 
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
-	"golang.org/x/text/number"
 )
 
 func closePipe(r *io.PipeReader, w *io.PipeWriter) {
@@ -83,27 +85,53 @@ func getBitrate(path string) string {
 	return capturedOutput
 }
 
+var concurrency = true
+
 func main() {
+	if len(os.Args) == 2 {
+		concurrency = false
+	}
+
 	dir, err := os.ReadDir(".")
 	if err != nil {
 		log.Fatal(err)
 	}
-	maxLength := 0
-	for _, file := range dir {
-		length := len(file.Name())
-		if maxLength < length {
-			maxLength = length
-		}
-	}
-	maxLength += 3
-	var p = message.NewPrinter(language.English)
-	fmt.Printf("NAME %s| BITRATE | WIDTH | HEIGHT | FPS\n", strings.Repeat(" ", maxLength-len("NAME")))
+	names := make([]string, 0, len(dir))
 	for _, entry := range dir {
 		if strings.HasSuffix(entry.Name(), ".mp4") {
-			info := probe(entry.Name())
-			_, _ = p.Printf("%s %s %v   %d    %d    %f\n", entry.Name(),
-				strings.Repeat(" ", maxLength-len(entry.Name())),
-				number.Decimal(info.Bitrate), info.Width, info.Height, info.Framerate)
+			names = append(names, entry.Name())
 		}
 	}
+	infoList := make([]*VideoInfo, len(names))
+	var wg *sync.WaitGroup
+	if concurrency {
+		wg = new(sync.WaitGroup)
+	}
+	for i := range names {
+		if concurrency {
+			wg.Go(func() {
+				infoList[i] = probe(names[i])
+			})
+		} else {
+			infoList[i] = probe(names[i])
+		}
+	}
+	if concurrency {
+		wg.Wait()
+	}
+	tabber := tabwriter.NewWriter(os.Stdout, 2, 3, 2, ' ', tabwriter.AlignRight)
+	_, err = fmt.Fprint(tabber, "BITRATE\tWIDTH\tHEIGHT\tFPS\t\tNAME\n")
+	if err != nil {
+		log.Fatal(err)
+	}
+	var p = message.NewPrinter(language.English)
+	for i, info := range infoList {
+		str := p.Sprintf("%d\t%d\t%d\t%d\t\t%s\n",
+			info.Bitrate, info.Width, info.Height, int64(math.Round(info.Framerate)), names[i])
+		_, err = fmt.Fprint(tabber, str)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	_ = tabber.Flush()
 }
