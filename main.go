@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"os/exec"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -121,6 +122,8 @@ func main() {
 	if concurrency {
 		wg.Wait()
 	}
+
+	slices.SortFunc(infoList, sortByResolution)
 	tabber := tabwriter.NewWriter(os.Stdout, 2, 3, 2, ' ', tabwriter.AlignRight)
 	_, err = fmt.Fprint(tabber, "BITRATE\tWIDTH\tHEIGHT\tFPS\t\tNAME\n")
 	if err != nil {
