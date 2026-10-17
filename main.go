@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -88,11 +89,34 @@ func getBitrate(path string) string {
 	return capturedOutput
 }
 
-var concurrency = true
+func printHelp() {
+	fmt.Printf("Usage: gaze [OPTIONS]\nOptions:\n")
+	flag.PrintDefaults()
+}
+
+var concurrent = flag.Bool("c", true, "run concurrently")
+
+var sorting = flag.String("s", "na", "how to sort the output. Options are:\n"+
+	" 'na': By name, ascending.\n"+
+	" 'nd': By name, descending.\n"+
+	" 'fa': By fps, ascending.\n"+
+	" 'fd': By fps, descending.\n"+
+	" 'ba': By bitrate, ascending.\n"+
+	" 'bd': By bitrate, descending.\n"+
+	" 'ra': By resolution, ascending.\n"+
+	" 'rd': By resolution, descending.\n"+
+	" 'wa': By width, ascending.\n"+
+	" 'wd': By width, descending.\n"+
+	" 'ha': By height, ascending.\n"+
+	" 'hd': By height, descending.\n")
+
+var help = flag.Bool("h", false, "print this help message and exit")
 
 func main() {
-	if len(os.Args) == 2 {
-		concurrency = false
+	flag.Parse()
+	if *help {
+		printHelp()
+		os.Exit(0)
 	}
 
 	dir, err := os.ReadDir(".")
@@ -107,11 +131,11 @@ func main() {
 	}
 	infoList := make([]*VideoInfo, len(names))
 	var wg *sync.WaitGroup
-	if concurrency {
+	if *concurrent {
 		wg = new(sync.WaitGroup)
 	}
 	for i := range names {
-		if concurrency {
+		if *concurrent {
 			wg.Go(func() {
 				infoList[i] = probe(names[i])
 			})
@@ -119,11 +143,12 @@ func main() {
 			infoList[i] = probe(names[i])
 		}
 	}
-	if concurrency {
+	if *concurrent {
 		wg.Wait()
 	}
 
-	slices.SortFunc(infoList, sortByResolution)
+	sortFunc := selectSortFunction()
+	slices.SortFunc(infoList, sortFunc)
 	tabber := tabwriter.NewWriter(os.Stdout, 2, 3, 2, ' ', tabwriter.AlignRight)
 	_, err = fmt.Fprint(tabber, "BITRATE\tWIDTH\tHEIGHT\tFPS\t\tNAME\n")
 	if err != nil {

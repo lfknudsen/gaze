@@ -79,3 +79,34 @@ func sortByBitrateDesc(a *VideoInfo, b *VideoInfo) int {
 func sortByFramerateDesc(a *VideoInfo, b *VideoInfo) int {
 	return sortByFramerate(b, a)
 }
+
+func selectSortFunction() func(a *VideoInfo, b *VideoInfo) int {
+	switch *sorting {
+	case "na":
+		return sortByName
+	case "nd":
+		return sortByNameDesc
+	case "wa":
+		return sortByWidth
+	case "wd":
+		return sortByWidthDesc
+	case "ha":
+		return sortByHeight
+	case "hd":
+		return sortByHeightDesc
+	case "ra":
+		return sortByResolution
+	case "rd":
+		return sortByResolutionDesc
+	case "fa":
+		return sortByFramerate
+	case "fd":
+		return sortByFramerateDesc
+	case "ba":
+		return sortByBitrate
+	case "bd":
+		return sortByBitrateDesc
+	default:
+		return sortByName
+	}
+}
