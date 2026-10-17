@@ -23,6 +23,7 @@ func closePipe(r *io.PipeReader, w *io.PipeWriter) {
 }
 
 type VideoInfo struct {
+	Name                   string
 	Width, Height, Bitrate int64
 	Framerate              float64
 }
@@ -56,6 +57,7 @@ func probe(path string) *VideoInfo {
 	closePipe(pipeReader, pipeWriter)
 	_ = cmd.Wait()
 	info := VideoInfo{
+		Name:      path,
 		Width:     width,
 		Height:    height,
 		Bitrate:   bitrate,
@@ -125,9 +127,9 @@ func main() {
 		log.Fatal(err)
 	}
 	var p = message.NewPrinter(language.English)
-	for i, info := range infoList {
+	for _, info := range infoList {
 		str := p.Sprintf("%d\t%d\t%d\t%d\t\t%s\n",
-			info.Bitrate, info.Width, info.Height, int64(math.Round(info.Framerate)), names[i])
+			info.Bitrate, info.Width, info.Height, int64(math.Round(info.Framerate)), info.Name)
 		_, err = fmt.Fprint(tabber, str)
 		if err != nil {
 			log.Fatal(err)
