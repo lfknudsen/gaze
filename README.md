@@ -6,7 +6,7 @@ bit-rate, and frame-rate:
 ```
     BITRATE  WIDTH  HEIGHT  FPS  NAME
   2,094,050  1,280     720   60  example.mp4
-  1,714,198    614   1,080   30  example2.mp4
+  1,714,198    614   1,080   30  example2.flv
 ```
 
 ## Dependencies
@@ -25,7 +25,7 @@ go build
 gaze [OPTIONS]
 
 Options:
-  -c    run concurrently (default true)
+  -c    run sequentially
   -h    print this help message and exit
   -s string
         how to sort the output. Options are:
