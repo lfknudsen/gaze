@@ -94,7 +94,7 @@ func printHelp() {
 	flag.PrintDefaults()
 }
 
-var concurrent = flag.Bool("c", true, "run concurrently")
+var sequential = flag.Bool("c", false, "run sequentially")
 
 var sorting = flag.String("s", "na", "how to sort the output. Options are:\n"+
 	" 'na': By name, ascending.\n"+
@@ -130,21 +130,18 @@ func main() {
 		}
 	}
 	infoList := make([]*VideoInfo, len(names))
-	var wg *sync.WaitGroup
-	if *concurrent {
-		wg = new(sync.WaitGroup)
-	}
-	for i := range names {
-		if *concurrent {
+	if !*sequential {
+		wg := new(sync.WaitGroup)
+		for i := range names {
 			wg.Go(func() {
 				infoList[i] = probe(names[i])
 			})
-		} else {
+		}
+		wg.Wait()
+	} else {
+		for i := range names {
 			infoList[i] = probe(names[i])
 		}
-	}
-	if *concurrent {
-		wg.Wait()
 	}
 
 	sortFunc := selectSortFunction()
