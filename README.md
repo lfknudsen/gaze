@@ -1,7 +1,13 @@
 # Gaze
 
 List all video files in the current directory, displaying their resolution,
-bit-rate, and frame-rate.
+bit-rate, and frame-rate:
+
+```
+    BITRATE  WIDTH  HEIGHT  FPS  NAME
+  2,094,050  1,280     720   60  example.mp4
+  1,714,198    614   1,080   30  example2.mp4
+```
 
 ## Dependencies
 
