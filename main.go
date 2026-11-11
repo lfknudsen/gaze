@@ -9,6 +9,7 @@ import (
 	"math"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -112,6 +113,8 @@ var sorting = flag.String("s", "na", "how to sort the output. Options are:\n"+
 
 var help = flag.Bool("h", false, "print this help message and exit")
 
+var accepted = []string{".mp4", ".avi", ".flv", ".mkv", ".mpeg"}
+
 func main() {
 	flag.Parse()
 	if *help {
@@ -125,7 +128,7 @@ func main() {
 	}
 	names := make([]string, 0, len(dir))
 	for _, entry := range dir {
-		if strings.HasSuffix(entry.Name(), ".mp4") {
+		if slices.Contains(accepted, strings.ToLower(filepath.Ext(entry.Name()))) {
 			names = append(names, entry.Name())
 		}
 	}
