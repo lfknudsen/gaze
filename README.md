@@ -11,7 +11,7 @@ bit-rate, and frame-rate:
 
 ## Dependencies
 
-Requires `ffprobe` (i.e. `ffmpeg`) installed on your PATH.
+Requires `ffprobe` (from the `ffmpeg` suite of tools) installed on your PATH.
 
 ## Compile
 
